@@ -84,7 +84,6 @@ def save_to_csv(books_data):
         writer.writeheader()
         writer.writerows(books_data)
 #########
-print(requests.get(url))
 
 books_data = []
 current_page = 1
