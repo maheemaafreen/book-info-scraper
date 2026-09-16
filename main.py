@@ -7,9 +7,13 @@ url = "https://books.toscrape.com"
 current_url = url
 #RETRIEVING FUNCTION
 def retrieve_webpage(current_url):
-    response = requests.get(current_url)
-    response.raise_for_status()
-    return response
+    try:
+        response = requests.get(current_url, timeout=10)
+        response.raise_for_status()
+        return response
+    except requests.RequestException:
+        print("Oops! There was a problem retrieving the webpage.")
+        return None
 ####################
 #SOUP PARSING
 def create_soup(response):
@@ -86,6 +90,8 @@ current_page = 1
 while current_url:
     print(f"Scraping page {current_page}/50...")
     response = retrieve_webpage(current_url)
+    if response is None:
+        break
     soup = create_soup(response)
     books = find_books(soup)
     books_data.extend(get_book_data(books))
@@ -107,6 +113,6 @@ books_less20 = under_20(books_data)
 print(f"There are {len(books_less20)} books under £20.\n")
 
 average_cost = avg_price(books_data)
-print(f"The average book price is £{average_cost:.2f}.\n")
+print(f"The average book price is £{average_cost:.2f}.")
 
 save_to_csv(books_data)
