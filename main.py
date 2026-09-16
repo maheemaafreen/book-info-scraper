@@ -31,7 +31,7 @@ def get_book_data(books):
     for book in books:
         title = book.h3.a["title"]
         price = float(book.find("p", class_="price_color").text.replace("Â£", ""))
-        book_data = {"title": title, "price_gbp": price, "under_20": price<20}
+        book_data = {"title": title, "price_gbp": price}
         books_data.append(book_data)
     return books_data
 ###################
@@ -62,12 +62,12 @@ def most_expensive(books_data):
     return highest_book, highest_price
 ###################
 #BOOKS UNDER 20 QUID
-def under_20(books_data):
-    books_less20 = []
+def under_price(books_data, price_limit):
+    books_under_price = []
     for book_data in books_data:
-        if book_data["under_20"]:
-            books_less20.append(book_data)
-    return books_less20
+        if book_data["price_gbp"] < price_limit:
+            books_under_price.append(book_data)
+    return books_under_price
 ###################
 #AVERAGE COST PER BOOK
 def avg_price(books_data):
@@ -80,10 +80,11 @@ def avg_price(books_data):
 #CSV FILE
 def save_to_csv(books_data):
     with open("books.csv", "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=["title", "price_gbp", "under_20"])
+        writer = csv.DictWriter(file, fieldnames=["title", "price_gbp"])
         writer.writeheader()
         writer.writerows(books_data)
 #########
+print(requests.get(url))
 
 books_data = []
 current_page = 1
@@ -102,17 +103,26 @@ while current_url:
         current_page += 1
     else:
         break
+while True:
+    try:
+        price_limit = float(input("Enter a price limit: "))
+        if price_limit <= 0 or (price_limit*100)%1 != 0:
+            print("Oops! Please enter a valid price.")
+        else:
+            break
+    except ValueError:
+        print("Oops! Please enter a number.")
 
-cheapest_title, cheapest_price = cheapest_book(books_data)
-print(f"The cheapest book is '{cheapest_title}', at £{cheapest_price:.2f}!\n")
+#cheapest_title, cheapest_price = cheapest_book(books_data)
+#print(f"The cheapest book is '{cheapest_title}', at £{cheapest_price:.2f}!\n")
 
-highest_title, highest_price = most_expensive(books_data)
-print(f"The most expensive book is '{highest_title}', at £{highest_price:.2f}!\n")
+#highest_title, highest_price = most_expensive(books_data)
+#print(f"The most expensive book is '{highest_title}', at £{highest_price:.2f}!\n")
 
-books_less20 = under_20(books_data)
-print(f"There are {len(books_less20)} books under £20.\n")
+books_under_price = under_price(books_data, price_limit)
+print(f"There are {len(books_under_price)} books under £{price_limit:.2f}.\n")
 
-average_cost = avg_price(books_data)
-print(f"The average book price is £{average_cost:.2f}.")
+#average_cost = avg_price(books_data)
+#print(f"The average book price is £{average_cost:.2f}.")
 
 save_to_csv(books_data)
