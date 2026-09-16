@@ -1,12 +1,13 @@
+from urllib.parse import urljoin
 import requests
 import csv
 from bs4 import BeautifulSoup
 
 url = "https://books.toscrape.com"
-
+current_url = url
 #RETRIEVING FUNCTION
-def retrieve_webpage():
-    response = requests.get(url)
+def retrieve_webpage(current_url):
+    response = requests.get(current_url)
     response.raise_for_status()
     return response
 ####################
@@ -80,20 +81,32 @@ def save_to_csv(books_data):
         writer.writerows(books_data)
 #########
 
-response = retrieve_webpage()
-soup = create_soup(response)
-books = find_books(soup)
-books_data = get_book_data(books)
-show_books(books_data)
+books_data = []
+current_page = 1
+while current_url:
+    print(f"Scraping page {current_page}/50...")
+    response = retrieve_webpage(current_url)
+    soup = create_soup(response)
+    books = find_books(soup)
+    books_data.extend(get_book_data(books))
+    next_link = soup.find("a", string="next")
+    if next_link:
+        next_url = urljoin(current_url, next_link["href"])
+        current_url = next_url
+        current_page += 1
+    else:
+        break
+
 cheapest_title, cheapest_price = cheapest_book(books_data)
-print(f"\nThe cheapest book is '{cheapest_title}', at £{cheapest_price}!\n")
-highest_book, highest_price = most_expensive(books_data)
-print(f"The most expensive book is '{highest_book}', at £{highest_price}!")
+print(f"The cheapest book is '{cheapest_title}', at £{cheapest_price:.2f}!\n")
+
+highest_title, highest_price = most_expensive(books_data)
+print(f"The most expensive book is '{highest_title}', at £{highest_price:.2f}!\n")
+
 books_less20 = under_20(books_data)
-print("\n~~Books Under 20~~")
-for number, book_less20 in enumerate(books_less20, 1):
-    print(f"{number}. {book_less20["title"]}")
 print(f"There are {len(books_less20)} books under £20.\n")
+
 average_cost = avg_price(books_data)
-print(f"The average book price is £{average_cost:.2f}.")
+print(f"The average book price is £{average_cost:.2f}.\n")
+
 save_to_csv(books_data)
