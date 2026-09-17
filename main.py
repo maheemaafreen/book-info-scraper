@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 
 url = "https://books.toscrape.com"
 current_url = url
+rating_numbers = {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
+
 #RETRIEVING FUNCTION
 def retrieve_webpage(current_url):
     try:
@@ -31,7 +33,9 @@ def get_book_data(books):
     for book in books:
         title = book.h3.a["title"]
         price = float(book.find("p", class_="price_color").text.replace("Â£", ""))
-        book_data = {"title": title, "price_gbp": price}
+        rating = book.find("p", class_="star-rating")["class"][1]
+        rating = rating_numbers[rating]
+        book_data = {"title": title, "price_gbp": price, "rating": rating}
         books_data.append(book_data)
     return books_data
 ###################
@@ -61,14 +65,31 @@ def most_expensive(books_data):
             highest_book = book_data["title"]
     return highest_book, highest_price
 ###################
-#BOOKS UNDER 20 QUID
+#BOOKS UNDER VARIABLE PRICE LIMIT
 def under_price(books_data, price_limit):
     books_under_price = []
     for book_data in books_data:
         if book_data["price_gbp"] < price_limit:
             books_under_price.append(book_data)
     return books_under_price
-###################
+#################################
+#RATING
+def rating_count(books_data, rating):
+    count = 0
+    for book_data in books_data:
+        if book_data["rating"] == rating:
+            count +=1
+    return count
+########
+#AVG PRICE PER RATING
+def avg_price_by_rating(books_data, rating):
+    total_price_rating = 0
+    for book_data in books_data:
+        if book_data["rating"] == rating:
+            total_price_rating += book_data["price_gbp"]
+    average_price_by_rating = total_price_rating / rating_count(books_data, rating)
+    return average_price_by_rating
+#####################
 #AVERAGE COST PER BOOK
 def avg_price(books_data):
     total_price = 0
@@ -80,7 +101,7 @@ def avg_price(books_data):
 #CSV FILE
 def save_to_csv(books_data):
     with open("books.csv", "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=["title", "price_gbp"])
+        writer = csv.DictWriter(file, fieldnames=["title", "price_gbp", "rating"])
         writer.writeheader()
         writer.writerows(books_data)
 #########
@@ -102,15 +123,15 @@ while current_url:
         current_page += 1
     else:
         break
-while True:
-    try:
-        price_limit = float(input("Enter a price limit: "))
-        if price_limit <= 0 or (price_limit*100)%1 != 0:
-            print("Oops! Please enter a valid price.")
-        else:
-            break
-    except ValueError:
-        print("Oops! Please enter a number.")
+#while True:
+    #try:
+        #price_limit = float(input("Enter a price limit: "))
+        #if price_limit <= 0 or (price_limit*100)%1 != 0:
+            #print("Oops! Please enter a valid price.")
+        #else:
+            #break
+    #except ValueError:
+        #print("Oops! Please enter a number.")
 
 #cheapest_title, cheapest_price = cheapest_book(books_data)
 #print(f"The cheapest book is '{cheapest_title}', at £{cheapest_price:.2f}!\n")
@@ -118,10 +139,53 @@ while True:
 #highest_title, highest_price = most_expensive(books_data)
 #print(f"The most expensive book is '{highest_title}', at £{highest_price:.2f}!\n")
 
-books_under_price = under_price(books_data, price_limit)
-print(f"There are {len(books_under_price)} books under £{price_limit:.2f}.\n")
+#books_under_price = under_price(books_data, price_limit)
+#print(f"There are {len(books_under_price)} books under £{price_limit:.2f}.\n")
 
 #average_cost = avg_price(books_data)
 #print(f"The average book price is £{average_cost:.2f}.")
+
+#one_star_books = rating_count(books_data, 1)
+#print(f"\nThere are {one_star_books} 1-star books.")
+
+#two_star_books = rating_count(books_data, 2)
+#print(f"There are {two_star_books} 2-star books.")
+
+#three_star_books = rating_count(books_data, 3)
+#print(f"There are {three_star_books} 3-star books.")
+
+#four_star_books = rating_count(books_data, 4)
+#print(f"There are {four_star_books} 4-star books.")
+
+#five_star_books = rating_count(books_data, 5)
+#print(f"There are {five_star_books} 5-star books.\n")
+
+#total_ratings = 0
+#total_ratings += (one_star_books*1) + (two_star_books*2) + (three_star_books*3) + (four_star_books*4) + (five_star_books*5)
+
+#average_rating = total_ratings / len(books_data)
+#print(f"The average rating across all 1000 books is {average_rating}.")
+
+#avg_price_onestar = avg_price_by_rating(books_data, 1)
+#print(f"The average price of 1-star books is £{avg_price_onestar:.2f}.")
+
+#avg_price_twostar = avg_price_by_rating(books_data, 2)
+#print(f"The average price of 2-star books is £{avg_price_twostar:.2f}.")
+
+#avg_price_threestar = avg_price_by_rating(books_data, 3)
+#print(f"The average price of 3-star books is £{avg_price_threestar:.2f}.")
+
+#avg_price_fourstar = avg_price_by_rating(books_data, 4)
+#print(f"The average price of 4-star books is £{avg_price_fourstar:.2f}.")
+
+#avg_price_fivestar = avg_price_by_rating(books_data, 5)
+#print(f"The average price of 5-star books is £{avg_price_fivestar:.2f}.")
+
+print("\n~AVERAGE PRICE PER BOOK PER RATING~")
+average_prices_rating = []
+for rating in range(1, 6):
+    avg_price_rating = avg_price_by_rating(books_data, rating)
+    average_prices_rating.append(avg_price_rating)
+    print(f"{rating}-star: £{avg_price_rating:.2f}.")
 
 save_to_csv(books_data)
