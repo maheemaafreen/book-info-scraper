@@ -166,21 +166,6 @@ while current_url:
 #average_rating = total_ratings / len(books_data)
 #print(f"The average rating across all 1000 books is {average_rating}.")
 
-#avg_price_onestar = avg_price_by_rating(books_data, 1)
-#print(f"The average price of 1-star books is £{avg_price_onestar:.2f}.")
-
-#avg_price_twostar = avg_price_by_rating(books_data, 2)
-#print(f"The average price of 2-star books is £{avg_price_twostar:.2f}.")
-
-#avg_price_threestar = avg_price_by_rating(books_data, 3)
-#print(f"The average price of 3-star books is £{avg_price_threestar:.2f}.")
-
-#avg_price_fourstar = avg_price_by_rating(books_data, 4)
-#print(f"The average price of 4-star books is £{avg_price_fourstar:.2f}.")
-
-#avg_price_fivestar = avg_price_by_rating(books_data, 5)
-#print(f"The average price of 5-star books is £{avg_price_fivestar:.2f}.")
-
 print("\n~AVERAGE PRICE PER BOOK PER RATING~")
 average_prices_rating = []
 for rating in range(1, 6):
